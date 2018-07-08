@@ -1,15 +1,13 @@
 package com.kvstore;
 
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 
 public class MainDriver {
 
 	public static void main(String[] args) {
-		KVStoreImpl<Integer, String> kv = new KVStoreImpl<>(4);
+		/*KVStoreImpl<Integer, String> kv = new KVStoreImpl<>(4);
 		
 		kv.put(1, "Jack");
 		kv.put(2, "Coke");
@@ -27,7 +25,7 @@ public class MainDriver {
 		kv.delete(3);
 		System.out.println("KV Store size : " + kv.size());
 		
-		kv.print();
+		kv.print();*/
 		
 		//kv.clear();
 		
@@ -35,29 +33,19 @@ public class MainDriver {
 		
 		//System.out.println("KV Store size : " + kv.size());
 		
-		//kv.persist(kv);
+		//kv.serialize(kv);
 		
-		try {
-			FileOutputStream fos = new FileOutputStream("kvstore.ser");
-			ObjectOutputStream oos = new ObjectOutputStream(fos);
-			
-			oos.writeObject(kv);
-			oos.close();
-			fos.close();
-			System.out.println("KV Store Serialized");
-		} catch(IOException ioe) {
-			ioe.printStackTrace();
-		}
-		
-		/*KVStoreImpl<Integer, String> deser = null;
-		
+		//to deserialize from a given file.
+		KVStoreImpl<Integer, String> deser = null;
+
 		try {
 			FileInputStream fis = new FileInputStream("kvstore.ser");
 			ObjectInputStream ois = new ObjectInputStream(fis);
 			deser = (KVStoreImpl) ois.readObject();
 			ois.close();
 			fis.close();
-		} catch(IOException ioe) {
+			System.out.println("Deserialized KV Store :");
+		} catch (IOException ioe) {
 			ioe.printStackTrace();
 			return;
 		} catch (ClassNotFoundException c) {
@@ -65,10 +53,8 @@ public class MainDriver {
 			c.printStackTrace();
 			return;
 		}
-		
-		System.out.println("Deserialized KV Store :");
-		
-		deser.print();*/
+									
+		deser.print();
 	}
 
 }

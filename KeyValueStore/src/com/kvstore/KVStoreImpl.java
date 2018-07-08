@@ -1,5 +1,8 @@
 package com.kvstore;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.concurrent.locks.StampedLock;
 
@@ -185,33 +188,25 @@ public class KVStoreImpl<K, V> implements KVStore<K, V>, Serializable {
 	@Override
 	public long size() {
 
-		long stamp = lock.tryOptimisticRead();
+		// long stamp = lock.tryOptimisticRead();
 		int count = 0;
 
-		if(!lock.validate(stamp)) {
-			stamp = lock.readLock();
-			try {
-				for (int i = 0; i < entryTable.length; i++) {
-					if (entryTable[i] != null) {
-						int nodeCount = 0;
-						for (Entry<K, V> e = entryTable[i]; e.next != null; e = e.next) {
-							nodeCount++;
-						}
-
-						// horizontal buckets
-						count += nodeCount;
-
-						// vertical count
-						count++;
-					}
+		for (int i = 0; i < entryTable.length; i++) {
+			if (entryTable[i] != null) {
+				int nodeCount = 0;
+				for (Entry<K, V> e = entryTable[i]; e.next != null; e = e.next) {
+					nodeCount++;
 				}
-				
-				
-			} finally {
-				lock.unlock(stamp);
+
+				// horizontal buckets
+				count += nodeCount;
+
+				// vertical count
+				count++;
 			}
 		}
-		return count;		
+
+		return count;
 	}
 
 	@Override
@@ -235,17 +230,19 @@ public class KVStoreImpl<K, V> implements KVStore<K, V>, Serializable {
 
 	}
 
-	public void persist(KVStoreImpl obj) {
+	public void serialize(KVStoreImpl obj) {
 
-		/*
-		 * try { FileOutputStream fos = new FileOutputStream("kvstore.ser");
-		 * ObjectOutputStream oos = new ObjectOutputStream(fos);
-		 * 
-		 * oos.writeObject(obj); oos.close(); fos.close();
-		 * System.out.println("KV Store Serialized"); } catch(IOException ioe) {
-		 * ioe.printStackTrace(); }
-		 */
+		try {
+			FileOutputStream fos = new FileOutputStream("kvstore.ser");
+			ObjectOutputStream oos = new ObjectOutputStream(fos);
+
+			oos.writeObject(obj);
+			oos.close();
+			fos.close();
+			System.out.println("KV Store Serialized");
+		} catch (IOException ioe) {
+			ioe.printStackTrace();
+		}
 
 	}
-
 }
