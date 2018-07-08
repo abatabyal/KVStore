@@ -2,7 +2,7 @@ package com.kvstore;
 
 public interface KVStore<K, V> {
 	
-	V get (K key);
+	V get (K key) throws InterruptedException;
 	
 	void put(K key, V value);
 	
@@ -10,7 +10,7 @@ public interface KVStore<K, V> {
 	
 	void clear ();
 	
-	long size ();
+	long size () throws InterruptedException;
 	
 	void print ();
 	

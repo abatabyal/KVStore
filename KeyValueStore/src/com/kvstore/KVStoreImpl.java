@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.concurrent.locks.StampedLock;
+import static java.lang.Thread.sleep;
 
 public class KVStoreImpl<K, V> implements KVStore<K, V>, Serializable {
 
@@ -52,14 +53,15 @@ public class KVStoreImpl<K, V> implements KVStore<K, V>, Serializable {
 	}
 
 	@Override
-	public V get(K key) {
+	public V get(K key){
 		long stamp = lock.tryOptimisticRead();
-
-		if (!lock.validate(stamp)) {
-			stamp = lock.readLock();
-
-			try {
-
+		
+		//calling validate(stamp) method to ensure that stamp is valid, if not then acquiring the read lock  
+	    if (!lock.validate(stamp)){  
+	    	stamp = lock.readLock();  
+	    	
+	    	try {
+				sleep(5000);
 				if (key == null) {
 					return null;
 				}
@@ -78,10 +80,14 @@ public class KVStoreImpl<K, V> implements KVStore<K, V>, Serializable {
 					}
 				}
 
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			} finally {
 				lock.unlock(stamp);
 			}
-		}
+	    }
+		
 		return null;
 	}
 
@@ -188,24 +194,23 @@ public class KVStoreImpl<K, V> implements KVStore<K, V>, Serializable {
 	@Override
 	public long size() {
 
-		// long stamp = lock.tryOptimisticRead();
 		int count = 0;
-
+		
 		for (int i = 0; i < entryTable.length; i++) {
-			if (entryTable[i] != null) {
-				int nodeCount = 0;
-				for (Entry<K, V> e = entryTable[i]; e.next != null; e = e.next) {
-					nodeCount++;
+				if (entryTable[i] != null) {
+					int nodeCount = 0;
+					for (Entry<K, V> e = entryTable[i]; e.next != null; e = e.next) {
+						nodeCount++;
+					}
+
+					// horizontal buckets
+					count += nodeCount;
+
+					// vertical count
+					count++;
 				}
-
-				// horizontal buckets
-				count += nodeCount;
-
-				// vertical count
-				count++;
 			}
-		}
-
+		
 		return count;
 	}
 
@@ -231,7 +236,8 @@ public class KVStoreImpl<K, V> implements KVStore<K, V>, Serializable {
 	}
 
 	public void serialize(KVStoreImpl obj) {
-
+		
+		long stamp = lock.writeLock();
 		try {
 			FileOutputStream fos = new FileOutputStream("kvstore.ser");
 			ObjectOutputStream oos = new ObjectOutputStream(fos);
@@ -242,6 +248,8 @@ public class KVStoreImpl<K, V> implements KVStore<K, V>, Serializable {
 			System.out.println("KV Store Serialized");
 		} catch (IOException ioe) {
 			ioe.printStackTrace();
+		} finally {
+			lock.unlockWrite(stamp);
 		}
 
 	}
